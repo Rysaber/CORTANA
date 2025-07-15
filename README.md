@@ -49,7 +49,6 @@ Está compuesto por herramientas personalizadas que el agente Cortana invoca din
   - `consultar_password`: busca contraseñas en Google Sheets.
   - `guardar_password`: (pendiente en este flujo).
   - `agendar_cita`, `reprogramar_cita`, `eliminar_cita`, `consultar_citas`: interactúan con Google Calendar.
-  - `guardar_nota`, `consultar_notas`, `eliminar_nota`: gestionan recordatorios informales en Sheets.
 
 ---
 
