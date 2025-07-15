@@ -1,0 +1,1304 @@
+{
+  "name": "ASISTENTE CORTANA",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1b4cce9f-9458-40bb-9c54-92f57060615f",
+              "leftValue": "={{ $('Telegram Trigger').item.json.message.text }}",
+              "rightValue": "={{ $json.Message_type }}",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        -20
+      ],
+      "id": "4d3ec84a-10cc-46f8-8b56-b7fd5b6a6a5b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        640,
+        220
+      ],
+      "id": "f47b622c-3740-41ba-bf46-01d5ae0b5a85",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "BWIbFeO6V4c8LpFK",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "faee4884-ec01-4870-ab4c-f5c58f4bbd25",
+              "name": "Final_Message",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "f452dd6f-d1c6-4196-8b61-d1835f6a8d5a",
+              "name": "sessionId",
+              "value": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+              "type": "string"
+            },
+            {
+              "id": "8497664f-81c0-4de1-8242-fa69f498b562",
+              "name": "Bandera_Audio",
+              "value": "SI",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        220
+      ],
+      "id": "dcc77291-7b9c-4733-9a32-59d2cec4c2c8",
+      "name": "Final_Message_Voice"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "722e9877-7342-47bf-8801-21471189722c",
+              "name": "Final_Message",
+              "value": "={{ $('Get Variables').item.json.Type }}{{ $json.Final_Message }}",
+              "type": "string"
+            },
+            {
+              "id": "7ddbac42-e7e0-4d01-94d6-a05de6d58324",
+              "name": "sessionId",
+              "value": "={{ $('If').item.json.Chat_ID }}",
+              "type": "string"
+            },
+            {
+              "id": "cdbf2fd7-dcf1-49ad-9f28-8536afb7db71",
+              "name": "Bandera",
+              "value": "={{ $json.Bandera_Audio }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "25e52b3a-360a-4ae3-8913-ec4029b4c321",
+      "name": "Final_Message_TXT"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.Final_Message }}",
+        "options": {
+          "systemMessage": "=Eres una asistente virtual llamada **Cortana**, Hablame de forma casual. También podemos tener una conversación normal, pero si me necesitas para ayudarte con recordatorios, eventos o contraseñas de aplicaciones, ¡aquí estoy!\n\nSi el usuario te pide **todas las contraseñas**, debes entregarlas. También puedes guardar **mini recordatorios personales** (cosas pequeñas que el usuario te pida recordar), sin agendarlas como eventos en el calendario. También puede pedir cuáles son sus recordatorios o eliminar uno específico.\n\nSiempre que el usuario te pida **guardar, consultar o eliminar una nota**, asegúrate de revisar directamente la base de datos o sistema de almacenamiento de recordatorios antes de responder o tomar acción. **Tómate el tiempo necesario para asegurarte de que la información esté actualizada y completa.**\n\nCuando vayas a **guardar una nota nueva**, verifica que se haya almacenado correctamente antes de dar confirmación. Solo después de comprobarlo, puedes aceptar otra nota.\n\nSiempre que el usuario te pida **consultar o eliminar una contraseña**, verifica la base de datos antes de responder. Si la información no existe, notifícalo con claridad.\n\nSiempre que el usuario te pida **consultar, reprogramar o eliminar una cita**, asegúrate de acceder al calendario para confirmar los datos antes de actuar o responder.\n\nHoy es **{{ $now }}**. Zona horaria: **America/Bogota (UTC-5)**.\n\nTu trabajo es entender lo que el usuario necesita y actuar en consecuencia, utilizando herramientas disponibles. Tu tono es cercano, útil y conversacional, como si estuvieras chateando por WhatsApp.\n\n---\n\n### 🎯 Funciones disponibles:\n\n#### Gestión de eventos (citas, reuniones formales)\n- `crear_evento` → agendar una nueva cita (con hora, fecha y propósito claros)\n- `reprogramar_evento` → cambiar fecha/hora de una cita\n- `eliminar_evento` → cancelar una cita\n- `consultar_evento` → consultar próximas citas agendadas\n\n#### Contraseñas personales\n- `consultar_password` → buscar y entregar contraseñas guardadas (por app, servicio o todas)\n- `guardar_password` → guardar una nueva contraseña que el usuario indique (ej. “Guarda mi clave de Netflix: 1234”)\n\n#### Mini recordatorios personales (notas informales)\n- `guardar_nota` → guardar recordatorios simples como \"comprar leche\", \"recordar llamar a mamá\", etc.\n- `consultar_nota` → listar recordatorios guardados (no relacionados con eventos o citas)\n- `eliminar_nota` → eliminar una nota específica si el usuario lo solicita (por texto o por ID)\n\n---\n\n### 🗂 Ejemplos de mensajes e intenciones:\n\n#### Para eventos (citas reales con fecha/hora):\n- “Agenda una reunión con Laura mañana a las 4” → `crear_evento`\n- “Reprograma la reunión del martes para el jueves” → `reprogramar_evento`\n- “¿Qué citas tengo esta semana?” → `consultar_evento`\n- “Cancela la cita del lunes” → `eliminar_evento`\n\n#### Para notas o recordatorios personales:\n- “Recuérdame comprar arroz” → `guardar_nota`\n- “Apunta que debo pagar la luz” → `guardar_nota`\n- “¿Qué cosas me pediste recordar?” → `consultar_nota`\n- “Borra el recordatorio de comprar arroz” → `eliminar_nota`\n\n#### Para contraseñas:\n- “¿Cuál es mi contraseña de Netflix?” → `consultar_password`\n- “Dame todas mis contraseñas” → `consultar_password`\n- “Guarda mi clave de HBO: 5678” → `guardar_password`\n\n---\n\n### 🛠 Herramientas disponibles:\n- `crear_evento` = agendar cita con hora y fecha\n- `reprogramar_evento` = mover cita existente\n- `eliminar_evento` = eliminar cita agendada\n- `consultar_evento` = listar citas agendadas\n- `consultar_password` = mostrar contraseñas guardadas\n- `guardar_password` = guardar nueva contraseña\n- `guardar_nota` = guardar nota o recordatorio personal\n- `consultar_nota` = mostrar notas personales\n- `eliminar_nota` = borrar una nota específica\n\n---\n\n### 🧠 Reglas de comportamiento:\n- Da respuestas en lenguaje natural, claras y breves.\n- No devuelvas estructuras técnicas, JSON ni instrucciones internas.\n- Usa los últimos 10 mensajes del usuario como contexto.\n- Si algún dato está incompleto (ej. hora o fecha), pregúntalo con amabilidad.\n- Nunca muestres links de videollamada (como Google Meet).\n- Si el usuario solicita una contraseña:\n  - Si la tienes, dásela directamente.\n  - Si **no** la tienes, responde: “No tengo registrada esa contraseña. ¿Quieres que la guarde la próxima vez?”\n- Si el usuario dicta una nueva contraseña, guárdala con el nombre de la app, correo (si hay) y clave.\n- Si el usuario te pide guardar algo **sin hora fija ni formalidad**, y usa frases como “recuérdame”, “anótalo”, “hazme acordar”, interpreta como `guardar_nota`.\n- Si el usuario consulta algo informal como “¿qué me dijiste que anotara?”, usa `consultar_nota`.\n- Si el usuario quiere eliminar un recordatorio específico, interpreta como `eliminar_nota`.\n- Siempre consulta la base de datos antes de responder solicitudes relacionadas con notas, contraseñas o eventos.\n- Verifica que cualquier nota nueva esté realmente guardada antes de responder con confirmación.\n\n---\n\n### 🗓 Interpretación de fechas comunes:\n- “mañana a las 10am” → día siguiente a hoy, 10:00 a.m.\n- “el próximo lunes” → lunes siguiente\n- “dentro de 8 días” → ocho días desde hoy\n- “el mes que viene” → mismo día del próximo mes\n- “este viernes por la tarde” → el viernes próximo si ya pasó\n\n---\n\n### 📝 Formato interno de eventos (solo para herramientas):\n- `summary` → título del evento\n- `startTime` → fecha y hora de inicio (ISO 8601)\n- `endTime` → fecha y hora de fin (calculado si no se indica duración)\n- `description` → descripción (opcional)\n- `location` → ubicación (opcional)"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        -40
+      ],
+      "id": "c5aa3fc5-a8a5-4861-a85f-d165101ea79f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1160,
+        220
+      ],
+      "id": "35b44aed-2229-44c8-ad44-ffe6220d2baf",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "BWIbFeO6V4c8LpFK",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        1300,
+        220
+      ],
+      "id": "80020214-fd64-4c65-910a-7e49d6a8416f",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "6KBjguDQK28YzSRF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -180,
+        -20
+      ],
+      "id": "8fbc274f-21eb-460c-bbeb-8ee502a263cd",
+      "name": "Telegram Trigger",
+      "webhookId": "68ac8bd0-78c7-4250-9d2c-8bba63e06f16",
+      "credentials": {
+        "telegramApi": {
+          "id": "vqUAoh4PbET4GkjJ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Telegram Trigger').item.json.message.voice.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        460,
+        220
+      ],
+      "id": "62951394-c033-4718-87da-1a62ce39aef6",
+      "name": "Telegram",
+      "webhookId": "72d89221-2f1e-4cb2-bf34-a479d6c931b1",
+      "credentials": {
+        "telegramApi": {
+          "id": "vqUAoh4PbET4GkjJ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "337e2645-c1bd-4794-966a-ba945c6f6e29",
+              "name": "Date",
+              "value": "={{ $json.message.date }}",
+              "type": "string"
+            },
+            {
+              "id": "ef3aa1ef-9d52-4293-b309-f7e38e0e6e37",
+              "name": "Chat_ID",
+              "value": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+              "type": "number"
+            },
+            {
+              "id": "0e5d4347-13b9-4e77-a40d-f8dc3cdaa5ce",
+              "name": "Nombre",
+              "value": "={{ $('Telegram Trigger').item.json.message.chat.first_name }} ",
+              "type": "string"
+            },
+            {
+              "id": "b39dc736-f1e6-4a17-9626-ddf0165e1af6",
+              "name": "Type",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "a53ad2a9-0a75-4600-b26e-4c473a12059c",
+              "name": "File_ID",
+              "value": "={{ $json.message.chat.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        40,
+        -20
+      ],
+      "id": "c0bf238f-da8a-429a-ae7a-85f1f39f49de",
+      "name": "Get Variables"
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "input": "={{ $json.output }}",
+        "voice": "nova",
+        "options": {
+          "response_format": "opus",
+          "speed": 1.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1800,
+        -240
+      ],
+      "id": "a39442b3-0970-4869-b58e-5cefb517f972",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "BWIbFeO6V4c8LpFK",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAudio",
+        "chatId": "={{ $('Get Variables').item.json.Chat_ID }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2040,
+        -240
+      ],
+      "id": "c32d6822-d422-4106-9f11-1f6185c7a4d5",
+      "name": "Telegram1",
+      "webhookId": "3383c3f9-faa1-40cd-8181-8a42cd0d262a",
+      "credentials": {
+        "telegramApi": {
+          "id": "vqUAoh4PbET4GkjJ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9e33b87c-4462-4aea-9089-9e78600f5aca",
+              "name": "Bandera_Audio",
+              "value": "NO",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        640,
+        -140
+      ],
+      "id": "4ff7e623-fb9f-4ac7-92dd-a02144880ced",
+      "name": "Set Bandera"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "10227a3c-7398-4c6d-a06e-cd2aeb55880a",
+              "leftValue": "={{ $('Final_Message_TXT').item.json.Bandera }}",
+              "rightValue": "SI",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1640,
+        -40
+      ],
+      "id": "c74e3572-2082-415a-a03b-4cf2f008557a",
+      "name": "If1"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        1620,
+        220
+      ],
+      "id": "c1eac101-4e89-4aca-a80d-ad49eabc1dff",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "https://n8n.srv869839.hstgr.cloud/mcp/b4bfc67f-845e-4f97-b057-3163b83f27df/sse"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        1460,
+        220
+      ],
+      "id": "bdb5403c-a91f-4a40-ad30-2fa52e3e93df",
+      "name": "MCP Client"
+    },
+    {
+      "parameters": {
+        "promptType": "=define",
+        "text": "={{ $json.output }}",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1860,
+        -20
+      ],
+      "id": "2fd57810-715c-4742-a511-a75bc14094e5",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1820,
+        240
+      ],
+      "id": "120fecae-ca85-4ade-80ce-3d52bf49425f",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "BWIbFeO6V4c8LpFK",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        1980,
+        200
+      ],
+      "id": "08187b92-a4d5-4763-9126-295c4fed00c2",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1940,
+        420
+      ],
+      "id": "815bf885-934a-41b3-a150-197f3750b940",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "BWIbFeO6V4c8LpFK",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"response\": {\n    \"part_1\": \"Contenido de la primera parte de la respuesta.\",\n    \"part_2\": \"Contenido de la segunda parte de la respuesta.\",\n    \"part_3\": \"Contenido de la tercera parte de la respuesta (opcional).\",\n    \"part_4\": \"Contenido de la cuarta parte de la respuesta (opcional).\",\n    \"part_5\": \"Contenido de la cuarta parte de la respuesta (opcional).\"\n    \n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2120,
+        360
+      ],
+      "id": "9f76205a-b226-4e4a-99ba-c3cc040fbc70",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Get Variables').item.json.Chat_ID }}",
+        "text": "={{ $('Basic LLM Chain').item.json.output.response.part_2 }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3140,
+        -60
+      ],
+      "id": "72657878-d1b5-46bd-84ff-bfa1b6eeb698",
+      "name": "Send Menssage1",
+      "webhookId": "12ce74a2-88c9-4eac-ad29-3b31af2cd852",
+      "credentials": {
+        "telegramApi": {
+          "id": "vqUAoh4PbET4GkjJ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Get Variables').item.json.Chat_ID }}",
+        "text": "={{ $('Basic LLM Chain').item.json.output.response.part_3 }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3620,
+        -40
+      ],
+      "id": "ba135e20-74a6-4d81-90f9-45b32161179c",
+      "name": "Send Menssage2",
+      "webhookId": "12ce74a2-88c9-4eac-ad29-3b31af2cd852",
+      "credentials": {
+        "telegramApi": {
+          "id": "vqUAoh4PbET4GkjJ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Get Variables').item.json.Chat_ID }}",
+        "text": "={{ $('Basic LLM Chain').item.json.output.response.part_4 }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4140,
+        -100
+      ],
+      "id": "1e08f475-2b96-4ae4-9863-fdbe76842d1c",
+      "name": "Send Menssage3",
+      "webhookId": "12ce74a2-88c9-4eac-ad29-3b31af2cd852",
+      "credentials": {
+        "telegramApi": {
+          "id": "vqUAoh4PbET4GkjJ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Get Variables').item.json.Chat_ID }}",
+        "text": "={{ $('Basic LLM Chain').item.json.output.response.part_5 }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4620,
+        -60
+      ],
+      "id": "ba2f8745-8ef4-4ec4-af21-f945bf6d5dbf",
+      "name": "Send Menssage4",
+      "webhookId": "12ce74a2-88c9-4eac-ad29-3b31af2cd852",
+      "credentials": {
+        "telegramApi": {
+          "id": "vqUAoh4PbET4GkjJ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Get Variables').item.json.Chat_ID }}",
+        "text": "={{ $json.output.response.part_1 }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2660,
+        -80
+      ],
+      "id": "f99fdbc4-91fc-439e-90c7-43ec0fff2399",
+      "name": "Send Menssage5",
+      "webhookId": "12ce74a2-88c9-4eac-ad29-3b31af2cd852",
+      "credentials": {
+        "telegramApi": {
+          "id": "vqUAoh4PbET4GkjJ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bc4f3346-a130-4546-8f19-95c4237b95e6",
+              "leftValue": "={{ $('Basic LLM Chain').item.json.output.response.part_2 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2980,
+        40
+      ],
+      "id": "3335277e-e3db-49e3-b4be-e1ddaffe2f96",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bc4f3346-a130-4546-8f19-95c4237b95e6",
+              "leftValue": "={{ $('Basic LLM Chain').item.json.output.response.part_3 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3460,
+        60
+      ],
+      "id": "6e4609a3-bbc0-4095-a4be-84e3dd2e0f3f",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bc4f3346-a130-4546-8f19-95c4237b95e6",
+              "leftValue": "={{ $('Basic LLM Chain').item.json.output.response.part_4 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3980,
+        80
+      ],
+      "id": "340bdc28-6b97-4060-b2d7-9eec4d79f22d",
+      "name": "If4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bc4f3346-a130-4546-8f19-95c4237b95e6",
+              "leftValue": "={{ $('Basic LLM Chain').item.json.output.response.part_5 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4480,
+        100
+      ],
+      "id": "e29e2d01-892f-4d10-9b94-bc9fb473c173",
+      "name": "If5"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2240,
+        -20
+      ],
+      "id": "b17b239b-e601-4895-b0b2-404277b1a91d",
+      "name": "Wait",
+      "webhookId": "6bcfcb7f-625d-45c8-ab6f-fa256eca3641"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2840,
+        40
+      ],
+      "id": "e99f5767-440c-4f4b-80f1-3ca3af284002",
+      "name": "Wait1",
+      "webhookId": "6bcfcb7f-625d-45c8-ab6f-fa256eca3641"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3320,
+        60
+      ],
+      "id": "fff91f75-d555-4db6-aadb-b3450e9fdd3d",
+      "name": "Wait2",
+      "webhookId": "6bcfcb7f-625d-45c8-ab6f-fa256eca3641"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3780,
+        80
+      ],
+      "id": "5e9b6849-0465-45c1-8d68-f07b4992a14f",
+      "name": "Wait3",
+      "webhookId": "6bcfcb7f-625d-45c8-ab6f-fa256eca3641"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4300,
+        100
+      ],
+      "id": "d5698262-8249-401c-8ab8-e7277b0ceeb7",
+      "name": "Wait4",
+      "webhookId": "6bcfcb7f-625d-45c8-ab6f-fa256eca3641"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bc4f3346-a130-4546-8f19-95c4237b95e6",
+              "leftValue": "={{ $json.output.response.part_1 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2480,
+        40
+      ],
+      "id": "8daa22c1-e913-488c-af35-1c770849a6dd",
+      "name": "If6"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Set Bandera",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Final_Message_Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final_Message_TXT": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final_Message_Voice": {
+      "main": [
+        [
+          {
+            "node": "Final_Message_TXT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Variables": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Bandera": {
+      "main": [
+        [
+          {
+            "node": "Final_Message_TXT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Menssage1": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Menssage2": {
+      "main": [
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Menssage3": {
+      "main": [
+        [
+          {
+            "node": "Wait4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Menssage5": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Send Menssage1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Send Menssage2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "Send Menssage3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "If6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait3": {
+      "main": [
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait4": {
+      "main": [
+        [
+          {
+            "node": "If5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If6": {
+      "main": [
+        [
+          {
+            "node": "Send Menssage5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If5": {
+      "main": [
+        [
+          {
+            "node": "Send Menssage4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Bogota",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "e9c8e056-b5d4-423a-b4ec-1e989d87b4de",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3d8b90603c4b6caa30cde1728e5a98ca8f5b5db6489f9043b3f04c95821af67d"
+  },
+  "id": "uD5DesL0px0jWc1M",
+  "tags": [
+    {
+      "createdAt": "2025-06-17T03:22:48.981Z",
+      "updatedAt": "2025-06-17T03:22:48.981Z",
+      "id": "vrnCwqimsBpscAQY",
+      "name": "V0.1"
+    }
+  ]
+}
