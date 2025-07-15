@@ -1,0 +1,7 @@
+# .gitignore
+node_modules/
+.env
+*.log
+__pycache__/
+.DS_Store
+n8n_data/
